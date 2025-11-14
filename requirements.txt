@@ -1,0 +1,4 @@
+aiogram
+peewee
+qrcode[pil]
+python-dotenv
