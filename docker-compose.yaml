@@ -9,9 +9,10 @@ services:
     restart: unless-stopped
     volumes:
       - bot_data:/app/data
-      - ./config:/app/config:rw
     environment:
       - PYTHONUNBUFFERED=1
+    env_file:
+      - .env
     working_dir: /app
 
 volumes:
