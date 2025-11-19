@@ -14,8 +14,9 @@ from aiogram.fsm.context import FSMContext
 
 from peewee import *
 
+DB_PATH = os.path.join(os.path.dirname(__file__), 'data', 'database.db')
 # Настройка базы данных
-db = SqliteDatabase('sqlite.db')
+db = SqliteDatabase(DB_PATH)
 
 # Модели базы данных
 class BaseModel(Model):

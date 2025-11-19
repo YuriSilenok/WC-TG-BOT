@@ -1,0 +1,19 @@
+version: '3.8'
+
+services:
+  tg-bot:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: wc-tg-bot
+    restart: unless-stopped
+    volumes:
+      - bot_data:/app/data
+      - ./config:/app/config:rw
+    environment:
+      - PYTHONUNBUFFERED=1
+    working_dir: /app
+
+volumes:
+  bot_data:
+    driver: local
