@@ -146,11 +146,11 @@ async def cmd_start(message: Message, state: FSMContext):
     # Проверяем является ли пользователь администратором
     if await is_admin(message.from_user.id):
         await message.answer(
-            "Добро пожаловать, администратор!",
+            "Добро пожаловать, администратор!!!",
             reply_markup=get_admin_main_menu()
         )
     else:
-        await message.answer("Добро пожаловать!")
+        await message.answer("Добро пожаловать!!!")
 
 async def handle_qr_start(message: Message, room_id: int, state: FSMContext):
     try:
