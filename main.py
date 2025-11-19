@@ -330,7 +330,7 @@ async def main():
     create_tables()
     
     # Создаем администратора (замените на ваш user_id)
-    admin_user_id = 320720102  # Замените на реальный ID администратора
+    admin_user_id = os.getenv('ADMIN_ID')
     try:
         User.get(User.user_id == admin_user_id)
     except User.DoesNotExist:
