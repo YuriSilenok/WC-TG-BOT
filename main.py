@@ -331,15 +331,16 @@ async def main():
     
     # Создаем администратора (замените на ваш user_id)
     admin_user_ids = os.getenv('ADMIN_ID')
-    try:
-        User.get(User.user_id == admin_user_ids)
-    except User.DoesNotExist:
-        User.create(
-            user_id=admin_user_ids,
-            username="admin",
-            first_name="Admin",
-            is_admin=True
-        )
+    for admin_user_id in admin_user_ids:
+        try:
+            User.get(User.user_id == admin_user_id)
+        except User.DoesNotExist:
+            User.create(
+                user_id=admin_user_id,
+                username="admin",
+                first_name="Admin",
+                is_admin=True
+            )
     
     await dp.start_polling(bot)
 
