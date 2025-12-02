@@ -330,7 +330,7 @@ async def main():
     create_tables()
     
     # Создаем администратора (замените на ваш user_id)
-    admin_user_ids = os.getenv('ADMIN_ID')
+    admin_user_ids = list(map(int, os.getenv('ADMIN_ID').split()))
     for admin_user_id in admin_user_ids:
         try:
             User.get(User.user_id == admin_user_id)
