@@ -312,7 +312,7 @@ async def handle_appeal(message: Message, state: FSMContext):
         await message.answer("Спасибо за обращение, мы уже его передали администрации")
         
         # Пересылаем обращение администратору
-        admin_user = User.get(User.user_id == room.admin_id)
+        # admin_user = User.get(User.user_id == room.admin_id)
         appeal_text = f"Новое обращение по помещению '{room.name}':\n\n{message.text}"
         await bot.send_message(room.admin_id, appeal_text)
         
