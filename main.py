@@ -104,7 +104,7 @@ def generate_qr_code(room_id):
     )
     
     # Создаем ссылку для запуска бота с параметром room_id
-    bot_username = "news_tester_bot"  # Замените на username вашего бота
+    bot_username = "wc_kosgos_bot"  # Замените на username вашего бота
     url = f"https://t.me/{bot_username}?start=room_{room_id}"
     
     qr.add_data(url)
