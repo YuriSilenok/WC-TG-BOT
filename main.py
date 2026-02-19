@@ -187,8 +187,8 @@ async def add_room_finish(message: Message, state: FSMContext):
 async def list_rooms(message: Message):
     if not await is_admin(message.from_user.id):
         return
-    
-    rooms = Room.select().where(Room.is_archived == False)
+
+    rooms = Room.select().where((Room.is_archived == False) & (Room.admin_id == message.from_user.id))
     
     if not rooms:
         await message.answer("Нет доступных помещений")
