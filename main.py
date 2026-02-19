@@ -104,7 +104,7 @@ def generate_qr_code(room_id):
     )
     
     # Создаем ссылку для запуска бота с параметром room_id
-    bot_username = "wc_kosgos_bot"  # Замените на username вашего бота
+    bot_username = "news_tester_bot"  # Замените на username вашего бота
     url = f"https://t.me/{bot_username}?start=room_{room_id}"
     
     qr.add_data(url)
@@ -312,10 +312,9 @@ async def handle_appeal(message: Message, state: FSMContext):
         await message.answer("Спасибо за обращение, мы уже его передали администрации")
         
         # Пересылаем обращение администратору
-        for admin_user in User.select().were(User.user_id == room.admin_id):
-            appeal_text = f"Новое обращение по помещению '{room.name}':\n\n{message.text}"
-            await bot.send_message(room.admin_id, appeal_text)
-            await asyncio.sleep(1)
+        admin_user = User.get(User.user_id == room.admin_id)
+        appeal_text = f"Новое обращение по помещению '{room.name}':\n\n{message.text}"
+        await bot.send_message(room.admin_id, appeal_text)
         
         await state.clear()
         
