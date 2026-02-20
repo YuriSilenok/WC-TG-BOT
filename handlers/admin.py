@@ -8,9 +8,10 @@ from aiogram.fsm.context import FSMContext
 
 from filters import IsRole
 from keyboards import get_admin_menu, get_delete_confirmation, get_room_actions
-from models import Appeal, Room
+from models import Appeal, Room, User, UserRole, Role
 from states import AdminStates
-from utils import generate_qr_code, start_room_handler
+from utils import generate_qr_code
+from handlers.common import start_room_handler
 
 
 ROUTER = Router()
@@ -120,7 +121,7 @@ async def send_qr_code(callback: CallbackQuery):
         caption=f"QR-код для помещения: {room.name}\nURL: {url}"
     )
     
-    # Удаляем временный файл
+    # Удhived = Trueаляем временный файл
     os.remove(f"qr_{room_id}.png")    
     await callback.answer()
 
@@ -162,3 +163,16 @@ async def confirm_delete(callback: CallbackQuery):
     await callback.message.edit_text(f"Помещение '{room.name}' удалено")
     await callback.answer()
 
+
+@ROUTER.message(Command("add_admin"))
+async def add_admin_handler(message: Message):
+    try:
+        user_id  = int(message.text.split()[-1])
+        user, _ = User.get_or_create(tg_id=user_id)
+        UserRole.get_or_create(
+            user=user,
+            role=Role.get(name='Администратор')
+        )
+        await message.answer('Роль администратора добавлена')
+    except Exception as ex:
+        await message.answer(f'Ошибка: {ex}')
