@@ -9,6 +9,16 @@ def get_admin_menu() -> ReplyKeyboardMarkup:
         resize_keyboard=True
     )
 
+def get_user_menu() -> ReplyKeyboardMarkup:
+    return ReplyKeyboardMarkup(
+        keyboard=[
+            [KeyboardButton(text="Выбрать помещение")],
+            [KeyboardButton(text="Отправить сообщение")],
+        ],
+        resize_keyboard=True
+    )
+
+
 def get_room_actions(room_id) -> InlineKeyboardMarkup:
     return InlineKeyboardMarkup(
         inline_keyboard=[
