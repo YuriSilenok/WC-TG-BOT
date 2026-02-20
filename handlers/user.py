@@ -50,4 +50,4 @@ async def handle_appeal(message: Message, state: FSMContext):
 
 @ROUTER.message(Command('get_id'))
 async def get_id_handler(message: Message):
-    await message.answer(message.from_user.id)
+    await message.answer(f'`{message.from_user.id}`')
