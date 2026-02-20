@@ -2,6 +2,7 @@ from aiogram import Router
 from aiogram.filters import Command
 from aiogram.types import Message
 from aiogram.fsm.context import FSMContext
+from aiogram.enums import ParseMode
 
 from models import Appeal, Room, User
 from states import UserStates
@@ -50,4 +51,7 @@ async def handle_appeal(message: Message, state: FSMContext):
 
 @ROUTER.message(Command('get_id'))
 async def get_id_handler(message: Message):
-    await message.answer(f'`{message.from_user.id}`')
+    await message.answer(
+        text=f'`{message.from_user.id}`',
+        parse_mode=ParseMode.MARKDOWN_V2
+    )
