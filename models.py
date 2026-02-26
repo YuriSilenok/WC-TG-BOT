@@ -32,6 +32,12 @@ class Room(BaseModel):
     creator = ForeignKeyField(User)
     is_archived = BooleanField(default=False)
 
+
+class Notify(BaseModel):
+    'Пользователи которых нужно уведомлять о новых сообщениях'
+    user = ForeignKeyField(User)
+    room = ForeignKeyField(Room)
+
 class Appeal(BaseModel):
     """Обращение"""
 

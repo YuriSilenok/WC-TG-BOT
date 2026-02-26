@@ -3,13 +3,16 @@ from typing import List
 
 from aiogram import F, Router
 from aiogram.filters import Command
-from aiogram.types import CallbackQuery, FSInputFile, Message
+from aiogram.types import (
+    CallbackQuery, FSInputFile, Message, 
+    InlineKeyboardMarkup, InlineKeyboardButton
+)
 from aiogram.fsm.context import FSMContext
 
 from filters import IsRole
 from keyboards import get_admin_menu, get_delete_confirmation, get_room_actions
-from models import Appeal, Room, User, UserRole, Role
-from states import AdminStates
+from models import Appeal, Notify, Room, User, UserRole, Role
+from states import AdminStates, AddNotify
 from utils import generate_qr_code
 from handlers.common import start_room_handler
 
@@ -17,6 +20,42 @@ from handlers.common import start_room_handler
 ROUTER = Router()
 ROUTER.message.filter(IsRole('Администратор'))
 ROUTER.callback_query.filter(IsRole('Администратор'))
+
+
+@ROUTER.message(F.text=='Назначить ответственных')
+async def add_user_notify_handler(message: Message, state: FSMContext):
+    await state.set_state(state=AddNotify.waiting_user_id)
+    await message.answer(
+        text='Вы перешли в режим добавления сотрудников, '
+        'которые будут получать сообщения о проблемах '
+        'в определенных помещениях. \n\nОтправьте id пользователя. '
+        'Пользователь его может получить при помощи команды /get_id'
+        '\n\nЕсли передумали, нажмите кнопку Отменить'
+        reply_markup=Inli
+    )
+
+@ROUTER.message(AddNotify.waiting_user_id)
+async def get_user_id_handler(message: Message, state: FSMContext):
+    try:
+        tg_id = int(message.text)
+        user = User.get_or_none(tg_id=tg_id)
+        if user in None:
+            await message.answer(
+                text=f'Пользователя с ID={tg_id} нет в БД. '
+                'Попросите его запустить бота.'
+            )
+            return
+        data: dict = await state.get_data()
+        users: list = data.get('users', [])
+        users.append(user)
+        await message.answer(
+            text=f'Пользователь с ID={tg_id} записан. Добавьте еще несколько пользователей или нажмите кнопку Далее, что бы перейти к добавлению помещений'
+        )
+
+
+    except ValueError as ex:
+        await message.answer(f'Ошибка: {ex}')
+
 
 
 @ROUTER.message(Command("start"))

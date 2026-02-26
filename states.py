@@ -8,3 +8,7 @@ class AdminStates(StatesGroup):
 
 class UserStates(StatesGroup):
     waiting_for_appeal = State()
+
+class AddNotify(StatesGroup):
+    waiting_user_id = State()
+    waiting_rooms = State()
