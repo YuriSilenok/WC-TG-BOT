@@ -11,7 +11,7 @@ from aiogram.fsm.context import FSMContext
 
 from filters import IsRole
 from keyboards import get_admin_menu, get_delete_confirmation, get_room_actions
-from models import Appeal, Notify, Room, User, UserRole, Role
+from models import Appeal, Notify, Question, Room, User, UserRole, Role
 from states import AdminStates, AddNotify
 from utils import generate_qr_code
 from handlers.common import start_room_handler
@@ -30,8 +30,8 @@ async def add_user_notify_handler(message: Message, state: FSMContext):
         'которые будут получать сообщения о проблемах '
         'в определенных помещениях. \n\nОтправьте id пользователя. '
         'Пользователь его может получить при помощи команды /get_id'
-        '\n\nЕсли передумали, нажмите кнопку Отменить'
-        reply_markup=Inli
+        '\n\nЕсли передумали, нажмите кнопку Отменить',
+        # reply_markup=Inli
     )
 
 @ROUTER.message(AddNotify.waiting_user_id)
@@ -101,20 +101,67 @@ async def list_rooms(message: Message):
         await message.answer("Нет доступных помещений")
         return
     
+    text = f'Помещения. Всего: {len(rooms)}'
+    inline_keyboard = []
     for room in rooms:
-        await message.answer(
-            text=f"Помещение: {room.name}",
-            reply_markup=get_room_actions(room.id)
-        )
+        inline_keyboard.append([
+            InlineKeyboardButton(text=str(room.name), callback_data=f'room_info_{room.id}'),
+            InlineKeyboardButton(text='📃', callback_data=f'room_messages_{room.id}'),
+            InlineKeyboardButton(text='❓', callback_data=f'room_questions_{room.id}'),
+            InlineKeyboardButton(text='QR', callback_data=f'room_qr_{room.id}'),
+            InlineKeyboardButton(text='🗑️', callback_data=f'room_delete_{room.id}'),
+        ])
+    reply_markup = InlineKeyboardMarkup(
+        inline_keyboard=inline_keyboard
+    )
+    await message.answer(text=text, reply_markup=reply_markup)
 
 
-@ROUTER.callback_query(F.data.startswith("appeals_"))
+@ROUTER.callback_query(F.data.startswith("room_questions_"))
+async def room_questions_handler(callback: CallbackQuery):
+    room_id = int(callback.data.split("_")[1])
+    room: Room = Room.get_or_none(id=room_id)
+    if room is None:
+        await callback.answer("Помещение не найдено")
+        return
+    
+    questions: List[Question] = (
+        Question.select().where(Question.room_id==room.id))
+    
+    inline_keyboard = []
+    for question in questions:
+        inline_keyboard.append([
+            InlineKeyboardButton(text=str(question.text), callback_data=f'question_menu_{question.id}'),
+        ])
+    reply_markup = InlineKeyboardMarkup(
+        inline_keyboard=inline_keyboard
+    )
+    text = f'Вопросы для команты: {room.name}'
+
+
+    await callback.message.answer(text=text, reply_markup=reply_markup)
+
+
+
+@ROUTER.callback_query(F.data.startswith("room_info_"))
+async def show_info_room(callback: CallbackQuery):
+    room_id = int(callback.data.split("_")[1])
+    room: Room = Room.get_or_none(id=room_id)
+    if room is None:
+        await callback.answer("Помещение не найдено")
+        return
+    
+    text = f'Помещение: {room.name}'
+    await callback.answer(text=text)
+
+
+@ROUTER.callback_query(F.data.startswith("room_messages_"))
 async def show_appeals(callback: CallbackQuery):
     room_id = int(callback.data.split("_")[1])
     
     room = Room.get_or_none(id=room_id)
     if room is None:
-        await callback.message.answer("Помещение не найдено")
+        await callback.answer("Помещение не найдено")
         return
     
     appeals: List[Appeal] = (Appeal.select()
@@ -123,7 +170,7 @@ async def show_appeals(callback: CallbackQuery):
                 .limit(10))
     
     if len(appeals) == 0:
-        await callback.message.answer("Нет обращений для этого помещения")
+        await callback.answer("Нет обращений для этого помещения")
         return
     
     response = "Последние обращения:\n\n"
@@ -135,7 +182,7 @@ async def show_appeals(callback: CallbackQuery):
     await callback.answer()
 
 
-@ROUTER.callback_query(F.data.startswith("qrcode_"))
+@ROUTER.callback_query(F.data.startswith("room_qr_"))
 async def send_qr_code(callback: CallbackQuery):
     room_id = int(callback.data.split("_")[1])
     
@@ -165,7 +212,7 @@ async def send_qr_code(callback: CallbackQuery):
     await callback.answer()
 
 
-@ROUTER.callback_query(F.data.startswith("delete_"))
+@ROUTER.callback_query(F.data.startswith("room_delete_"))
 async def delete_room_start(callback: CallbackQuery):
     room_id = int(callback.data.split("_")[1])
 

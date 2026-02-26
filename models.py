@@ -38,6 +38,12 @@ class Notify(BaseModel):
     user = ForeignKeyField(User)
     room = ForeignKeyField(Room)
 
+
+class Question(BaseModel):
+    room = ForeignKeyField(Room)
+    text = CharField()
+
+
 class Appeal(BaseModel):
     """Обращение"""
 
@@ -51,7 +57,7 @@ class Appeal(BaseModel):
 def create_tables():
 
     with db:
-        db.create_tables([Room, Appeal, User, Role, UserRole])
+        db.create_tables([Room, Appeal, User, Role, UserRole, Notify, Question])
 
     admin, _ = Role.get_or_create(name='Администратор')
     Role.get_or_create(name='Сотрудник')
