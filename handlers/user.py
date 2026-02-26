@@ -4,6 +4,7 @@ from aiogram.types import Message
 from aiogram.fsm.context import FSMContext
 from aiogram.enums import ParseMode
 
+from keyboards import get_user_menu
 from models import Appeal, Room, User
 from states import UserStates
 from handlers.common import start_room_handler
@@ -15,7 +16,14 @@ async def cmd_start(message: Message, state: FSMContext):
 
     if await start_room_handler(message, state):    
         await message.answer(
-            text="Добро пожаловать!!!"
+            text="Привет! Я - бот для сбора обратной связи о неполадках"
+                 " в помещениях университета. Вы можете найти QR-коды в разных"
+                 " аудиториях и зонах здания. Отсканируйте код, чтобы ваш запрос"
+                 " автоматически привязался к нужному месту. Если вы находитесь"
+                 " в коридоре, холле или другом месте без QR-кода - ничего страшного! "
+                 "Нажмите на кнопку “Отправить сообщение” или выберете помещение кликом на кнопку "
+                 "“Выбрать помещение”",
+            reply_markup = get_user_menu()
         )
 
 @ROUTER.message(UserStates.waiting_for_appeal)
@@ -40,7 +48,7 @@ async def handle_appeal(message: Message, state: FSMContext):
     )
     
     # Отправляем подтверждение пользователю
-    await message.answer("Спасибо за обращение, мы уже его передали администрации")
+    await message.answer("Спасибо за ваше обращение! Оно будет рассмотрено в ближайшее время.")
     
     # Пересылаем обращение администратору
     # admin_user = User.gegek htrdtcnj dytnbt(User.user_id == room.admin_id)

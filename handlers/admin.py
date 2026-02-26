@@ -63,7 +63,7 @@ async def cmd_start(message: Message, state: FSMContext):
 
     if await start_room_handler(message, state):
         await message.answer(
-            text="Добро пожаловать, администратор.",
+            text="Добро пожаловать, администратор! Я готов к работе. Выберите пункт ниже, что бы Вы хотели сделать?",
             reply_markup=get_admin_menu()
         )
 
@@ -160,7 +160,7 @@ async def send_qr_code(callback: CallbackQuery):
         caption=f"QR-код для помещения: {room.name}\nURL: {url}"
     )
     
-    # Удhived = Trueаляем временный файл
+    # hived = True Удаляем временный файл
     os.remove(f"qr_{room_id}.png")    
     await callback.answer()
 
