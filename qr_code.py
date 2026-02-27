@@ -3,7 +3,7 @@ import qrcode
 from io import BytesIO
 
 
-def generate_qr_code(room_id: int, bot_username: str) -> Tuple[BytesIO, str]:
+def generate(room_id: int, bot_username: str) -> Tuple[BytesIO, str]:
     qr = qrcode.QRCode(
         version=1,
         error_correction=qrcode.constants.ERROR_CORRECT_L,

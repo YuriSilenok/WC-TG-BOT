@@ -1,5 +1,6 @@
 import os
 from datetime import datetime
+from typing import List
 from dotenv import load_dotenv
 from peewee import SqliteDatabase, Model, DateTimeField, TextField, CharField, IntegerField, BooleanField, ForeignKeyField
 
@@ -31,6 +32,15 @@ class Room(BaseModel):
     name = CharField()
     creator = ForeignKeyField(User)
     is_archived = BooleanField(default=False)
+
+    @staticmethod
+    def get_active_by_user(user_id: int) -> List['Room']:
+        return list(
+            Room.select().where(
+                (Room.creator == user_id) &
+                (Room.is_archived == False)
+            )
+        )
 
 
 class Notify(BaseModel):
