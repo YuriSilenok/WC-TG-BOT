@@ -16,7 +16,7 @@ class BaseModel(Model):
 
 
 class User(BaseModel):
-    tg_id = IntegerField(unique=True, primary_key=True)
+    pass
 
 
 class Role(BaseModel):
@@ -44,12 +44,13 @@ class Room(BaseModel):
 
 
 class Notify(BaseModel):
-    'Пользователи которых нужно уведомлять о новых сообщениях'
+    '''Пользователи которых нужно уведомлять о новых сообщениях'''
     user = ForeignKeyField(User)
     room = ForeignKeyField(Room)
 
 
 class Question(BaseModel):
+    '''Варианты вопросов к комнате'''
     room = ForeignKeyField(Room)
     text = CharField()
 
@@ -75,7 +76,7 @@ def create_tables():
     load_dotenv()
     admin_user_ids = list(map(int, os.getenv('ADMIN_ID').split()))
     for admin_user_id in admin_user_ids:
-        user, _ = User.get_or_create(tg_id=admin_user_id)
+        user, _ = User.get_or_create(id=admin_user_id)
         UserRole.get_or_create(user=user, role=admin)
 
 

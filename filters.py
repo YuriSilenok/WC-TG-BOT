@@ -27,7 +27,7 @@ class IsRole(BaseFilter):
         return user_role is not None
 
     async def __call__(self, message: Message) -> bool:
-        user: User = User.get_or_none(tg_id=message.from_user.id)
+        user: User = User.get_or_none(id=message.from_user.id)
 
         if user is None:
             return False

@@ -41,7 +41,7 @@ async def handle_appeal(message: Message, state: FSMContext):
     # Пересылаем обращение администратору
     # admin_user = User.gegek htrdtcnj dytnbt(User.user_id == room.admin_id)
     appeal_text = f"Новое обращение по помещению '{room.name}':\n\n{message.text}"
-    await message.bot.send_message(room.creator.tg_id, appeal_text)
+    await message.bot.send_message(room.creator.id, appeal_text)
     await state.clear()
 
 

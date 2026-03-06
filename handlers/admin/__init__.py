@@ -4,7 +4,7 @@ from . import command, notify, room
 
 def add_routers(dp: Dispatcher):
     dp.include_routers(
-        notify.ROUTER,
+        notify.router,
         command.ROUTER,
         room.ROUTER,
     )

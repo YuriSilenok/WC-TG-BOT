@@ -7,7 +7,7 @@ from states import UserStates
 
 async def start_room_handler(message: Message, state: FSMContext):
     await state.clear()
-    User.get_or_none(tg_id=message.from_user.id)
+    User.get_or_none(id=message.from_user.id)
     # Проверяем параметры команды
     if len(message.text.split()) > 1:
         # Пользователь перешел по QR-коду

@@ -53,11 +53,11 @@ def room_notify(rooms: List[Tuple[int, str, bool]], users: List[int]):
     if row:
         inline_keyboard.append(row)
 
-    for tg_id in users:
+    for id in users:
         inline_keyboard.append([
             InlineKeyboardButton(
-                text=f"🗑️ {tg_id}",
-                callback_data=f"del_user_by_room_notify_{tg_id}"
+                text=f"🗑️ {id}",
+                callback_data=f"del_user_by_room_notify_{id}"
             )
         ])
 

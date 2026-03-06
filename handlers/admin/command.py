@@ -27,7 +27,7 @@ async def cmd_start(message: Message, state: FSMContext):
 async def add_admin_handler(message: Message):
     try:
         user_id = int(message.text.split()[-1])
-        user, _ = User.get_or_create(tg_id=user_id)
+        user, _ = User.get_or_create(id=user_id)
         UserRole.get_or_create(user=user, role=Role.get(name="Администратор"))
         await message.answer("Роль администратора добавлена")
     except Exception as ex:

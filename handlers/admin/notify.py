@@ -7,16 +7,16 @@ from aiogram.types import CallbackQuery, Message
 
 from filters import IsRole
 from keyboards import room_notify
-from models import Room, User
+from models import Notify, Room, User
 from states import AddNotify
 
 
-ROUTER = Router()
-ROUTER.message.filter(IsRole("Администратор"))
-ROUTER.callback_query.filter(IsRole("Администратор"))
+router = Router()
+router.message.filter(IsRole("Администратор"))
+router.callback_query.filter(IsRole("Администратор"))
 
 
-@ROUTER.message(F.text == "Назначить ответственных")
+@router.message(F.text == "Назначить ответственных")
 async def add_user_notify_handler(message: Message, state: FSMContext):
     """Выбрать комнаты для добалвения уведомлений по ним"""
     await state.set_state(state=AddNotify.add_notify)
@@ -41,7 +41,7 @@ async def add_user_notify_handler(message: Message, state: FSMContext):
     await state.update_data(last_message=(m.chat.id, m.message_id))
 
 
-@ROUTER.callback_query(AddNotify.add_notify, F.data.startswith("room_notify_"))
+@router.callback_query(AddNotify.add_notify, F.data.startswith("room_notify_"))
 async def mark_room_notify_handler(callback: CallbackQuery, state: FSMContext):
     """Выбрать комнаты для добавления уведомлений по ним"""
     data = await state.get_data()
@@ -60,24 +60,24 @@ async def mark_room_notify_handler(callback: CallbackQuery, state: FSMContext):
         )
     )
 
-@ROUTER.message(AddNotify.add_notify, F.text.isdigit())
+@router.message(AddNotify.add_notify, F.text.isdigit())
 async def get_user_id_handler(message: Message, state: FSMContext):
     """Добавление пользователей для уведомлений"""
     try:
-        tg_id = int(message.text)
-        user = User.get_or_none(tg_id=tg_id)
+        user_id = int(message.text)
+        user = User.get_or_none(id=user_id)
         if user is None:
             await message.answer(
-                text=f"Пользователя с ID={tg_id} нет в БД. "
+                text=f"Пользователя с ID={user_id} нет в БД. "
                 "Попросите его запустить бота."
             )
             return
         data: dict = await state.get_data()
         users: list = data.get("users", [])
-        if tg_id in users:
+        if user_id in users:
             await message.reply('Такой пользователь уже добавлен')
             return
-        users.append(tg_id)
+        users.append(user_id)
         await state.update_data(users=users)
         chat_id, message_id = data['last_message']
         await message.bot.delete_message(chat_id=chat_id, message_id=message_id)
@@ -87,16 +87,30 @@ async def get_user_id_handler(message: Message, state: FSMContext):
         await message.answer(f"Ошибка: {ex}")
 
 
-@ROUTER.callback_query(
+@router.callback_query(
         F.data.startswith('del_user_by_room_notify_'),
         AddNotify.add_notify,
 )
-async def del_user_handler(cq: CallbackQuery, state: FSMContext):
+async def del_user_handler(callback: CallbackQuery, state: FSMContext):
     """Удалить добавляемого пользователя"""
-    
+    data = await state.get_data()
+    users: List[int] = data.get('users', [])
+    user_id = int(callback.data.split('_')[-1])
+    if user_id in users:
+        users.remove(user_id)
+        await callback.message.edit_reply_markup(
+            reply_markup=room_notify(
+                rooms=data.get('rooms', []),
+                users=data.get('users', []),
+            )
+        )
+        await callback.answer('Подписчик удален')
+        await state.update_data(data=data)
+    else:
+        await callback.answer('Подписчик не найден')
 
 
-@ROUTER.callback_query(
+@router.callback_query(
         F.data == 'add_notify_done',
         AddNotify.add_notify)
 async def next_handlers(cq: CallbackQuery, state: FSMContext):
@@ -109,5 +123,27 @@ async def next_handlers(cq: CallbackQuery, state: FSMContext):
         return
     
     users = data['users']
-    if len(users):
+    if len(users) == 0:
         await cq.answer('Не добавлены пользователи')
+
+    text = []
+
+    for room_id, _, _ in rooms:
+        for user_id in users:
+            notify, created = Notify.get_or_create(
+                user_id=user_id,
+                room_id=room_id
+            )
+
+            if created:
+                text.append(f'{notify.room.name}->{notify.user.id}')
+
+    if text:
+        await cq.message.answer(
+            text='Добавлены следующие подписчики на обращения по помещениям:\n'+
+            ('\n'.join(map(str, text)))
+        )
+        await state.clear()
+        await cq.message.delete()
+    else:
+        await cq.answer('Новых подписчиков на обращения по можещениям не обнаружено')
