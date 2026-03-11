@@ -19,8 +19,9 @@ router.callback_query.filter(IsRole("Администратор"))
 @router.message(F.text == "Назначить ответственных")
 async def add_user_notify_handler(message: Message, state: FSMContext):
     """Выбрать комнаты для добалвения уведомлений по ним"""
-    await state.set_state(state=AddNotify.add_notify)
-    active_rooms: List[Room] = Room.get_active_by_user(user_id=message.from_user.id)
+    await state.set_state(state=AddNotify.waiting_room_and_user)
+    active_rooms: List[Room] = Room.get_active_by_user(
+        user_id=message.from_user.id)
     data = await state.get_data()
     data['rooms'] = data.get(
         'rooms',
@@ -41,7 +42,8 @@ async def add_user_notify_handler(message: Message, state: FSMContext):
     await state.update_data(last_message=(m.chat.id, m.message_id))
 
 
-@router.callback_query(AddNotify.add_notify, F.data.startswith("room_notify_"))
+@router.callback_query(AddNotify.waiting_room_and_user,
+                       F.data.startswith("room_notify_"))
 async def mark_room_notify_handler(callback: CallbackQuery, state: FSMContext):
     """Выбрать комнаты для добавления уведомлений по ним"""
     data = await state.get_data()
@@ -60,7 +62,8 @@ async def mark_room_notify_handler(callback: CallbackQuery, state: FSMContext):
         )
     )
 
-@router.message(AddNotify.add_notify, F.text.isdigit())
+
+@router.message(AddNotify.waiting_room_and_user, F.text.isdigit())
 async def get_user_id_handler(message: Message, state: FSMContext):
     """Добавление пользователей для уведомлений"""
     try:
@@ -88,8 +91,8 @@ async def get_user_id_handler(message: Message, state: FSMContext):
 
 
 @router.callback_query(
-        F.data.startswith('del_user_by_room_notify_'),
-        AddNotify.add_notify,
+    F.data.startswith('del_user_by_room_notify_'),
+    AddNotify.waiting_room_and_user,
 )
 async def del_user_handler(callback: CallbackQuery, state: FSMContext):
     """Удалить добавляемого пользователя"""
@@ -111,8 +114,8 @@ async def del_user_handler(callback: CallbackQuery, state: FSMContext):
 
 
 @router.callback_query(
-        F.data == 'add_notify_done',
-        AddNotify.add_notify)
+    F.data == 'add_notify_done',
+    AddNotify.waiting_room_and_user)
 async def next_handlers(cq: CallbackQuery, state: FSMContext):
     """Переход для назначения ответсвенных за аудитории"""
 
@@ -121,7 +124,7 @@ async def next_handlers(cq: CallbackQuery, state: FSMContext):
     if len(rooms) == 0:
         await cq.answer('Не выбраны помещения')
         return
-    
+
     users = data['users']
     if len(users) == 0:
         await cq.answer('Не добавлены пользователи')
@@ -140,10 +143,10 @@ async def next_handlers(cq: CallbackQuery, state: FSMContext):
 
     if text:
         await cq.message.answer(
-            text='Добавлены следующие подписчики на обращения по помещениям:\n'+
+            text='Добавлены следующие подписчики на обращения по помещениям:\n' +
             ('\n'.join(map(str, text)))
         )
         await state.clear()
         await cq.message.delete()
     else:
-        await cq.answer('Новых подписчиков на обращения по можещениям не обнаружено')
+        await cq.answer('Новых подписчиков на обращения по помещениям не обнаружено')

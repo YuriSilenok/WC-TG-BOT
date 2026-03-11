@@ -10,18 +10,17 @@ def generate(room_id: int, bot_username: str) -> Tuple[BytesIO, str]:
         box_size=10,
         border=4,
     )
-    
+
     url = f"https://t.me/{bot_username}?start=room_{room_id}"
-    
+
     qr.add_data(url)
     qr.make(fit=True)
-    
+
     img = qr.make_image(fill_color="black", back_color="white")
-    
+
     # Сохраняем изображение в байтовый поток
     bio = BytesIO()
     img.save(bio, 'PNG')
     bio.seek(0)
-    
-    return bio, url
 
+    return bio, url

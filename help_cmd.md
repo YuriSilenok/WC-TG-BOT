@@ -1,0 +1,1 @@
+autopep8 --in-place --max-line-length=80 --aggressive --aggressive --recursive .

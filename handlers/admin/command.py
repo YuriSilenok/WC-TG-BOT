@@ -9,12 +9,12 @@ from keyboards import get_admin_menu
 from models import Role, User, UserRole
 
 
-ROUTER = Router()
-ROUTER.message.filter(IsRole("Администратор"))
-ROUTER.callback_query.filter(IsRole("Администратор"))
+router = Router()
+router.message.filter(IsRole("Администратор"))
+router.callback_query.filter(IsRole("Администратор"))
 
 
-@ROUTER.message(Command("start"))
+@router.message(Command("start"))
 async def cmd_start(message: Message, state: FSMContext):
 
     if await start_room_handler(message, state):
@@ -23,12 +23,17 @@ async def cmd_start(message: Message, state: FSMContext):
         )
 
 
-@ROUTER.message(Command("add_admin"))
+@router.message(Command("add_admin"))
 async def add_admin_handler(message: Message):
     try:
         user_id = int(message.text.split()[-1])
-        user, _ = User.get_or_create(id=user_id)
+        user = User.get_or_none(id=user_id)
+
+        if user is None:
+            await message.answer(text='Такой полдьзователь не запускал бота')
+            return
+
         UserRole.get_or_create(user=user, role=Role.get(name="Администратор"))
         await message.answer("Роль администратора добавлена")
-    except Exception as ex:
+    except ValueError as ex:
         await message.answer(f"Ошибка: {ex}")

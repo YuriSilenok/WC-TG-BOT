@@ -3,28 +3,34 @@ from typing import List
 
 from aiogram import F, Router
 from aiogram.fsm.context import FSMContext
-from aiogram.types import CallbackQuery, FSInputFile, InlineKeyboardButton, InlineKeyboardMarkup, Message
+from aiogram.types import (
+    CallbackQuery,
+    FSInputFile,
+    InlineKeyboardButton,
+    InlineKeyboardMarkup,
+    Message
+)
 
 from filters import IsRole
 from keyboards import get_delete_confirmation, get_room_actions, get_rooms
-from models import Appeal, Question, Room
+from models import Answer, Appeal, Room
 from qr_code import generate
 from states import AdminStates
 
 
-ROUTER = Router()
-ROUTER.message.filter(IsRole("Администратор"))
-ROUTER.callback_query.filter(IsRole("Администратор"))
+router = Router()
+router.message.filter(IsRole("Администратор"))
+router.callback_query.filter(IsRole("Администратор"))
 
 
-@ROUTER.message(F.text == "Добавить помещение")
+@router.message(F.text == "Добавить помещение")
 async def add_room_start(message: Message, state: FSMContext):
 
     await message.answer("Введите название помещения:")
     await state.set_state(AdminStates.waiting_for_room_name)
 
 
-@ROUTER.message(AdminStates.waiting_for_room_name)
+@router.message(AdminStates.waiting_for_room_name)
 async def add_room_finish(message: Message, state: FSMContext):
     room_name = message.text.strip()
 
@@ -35,7 +41,7 @@ async def add_room_finish(message: Message, state: FSMContext):
     await state.clear()
 
 
-@ROUTER.message(F.text == "Список помещений")
+@router.message(F.text == "Список помещений")
 async def list_rooms(message: Message):
     rooms: List[Room] = list(
         Room.select().where(
@@ -57,23 +63,23 @@ async def list_rooms(message: Message):
     )
 
 
-@ROUTER.callback_query(F.data.startswith("room_questions_"))
-async def room_questions_handler(callback: CallbackQuery):
+@router.callback_query(F.data.startswith("room_answers_"))
+async def room_answers_handler(callback: CallbackQuery):
     room_id = int(callback.data.split("_")[-1])
     room: Room = Room.get_or_none(id=room_id)
     if room is None:
         await callback.answer("Помещение не найдено")
         return
 
-    questions: List[Question] = Question.select().where(Question.room_id == room.id)
+    answers: List[Answer] = list(Answer.select().where(Answer.room == room.id))
 
     inline_keyboard = []
-    for question in questions:
+    for answer in answers:
         inline_keyboard.append(
             [
                 InlineKeyboardButton(
-                    text=str(question.text),
-                    callback_data=f"question_menu_{question.id}",
+                    text=str(answer.text),
+                    callback_data=f"answer_menu_{answer.id}",
                 ),
             ]
         )
@@ -83,7 +89,7 @@ async def room_questions_handler(callback: CallbackQuery):
     await callback.message.answer(text=text, reply_markup=reply_markup)
 
 
-@ROUTER.callback_query(F.data.startswith("room_info_"))
+@router.callback_query(F.data.startswith("room_info_"))
 async def show_info_room(callback: CallbackQuery):
     room_id = int(callback.data.split("_")[-1])
     room: Room = Room.get_or_none(id=room_id)
@@ -95,7 +101,7 @@ async def show_info_room(callback: CallbackQuery):
     await callback.answer(text=text)
 
 
-@ROUTER.callback_query(F.data.startswith("room_messages_"))
+@router.callback_query(F.data.startswith("room_messages_"))
 async def show_appeals(callback: CallbackQuery):
     room_id = int(callback.data.split("_")[-1])
 
@@ -124,7 +130,7 @@ async def show_appeals(callback: CallbackQuery):
     await callback.answer()
 
 
-@ROUTER.callback_query(F.data.startswith("room_qr_"))
+@router.callback_query(F.data.startswith("room_qr_"))
 async def send_qr_code(callback: CallbackQuery):
     room_id = int(callback.data.split("_")[-1])
 
@@ -152,7 +158,7 @@ async def send_qr_code(callback: CallbackQuery):
     await callback.answer()
 
 
-@ROUTER.callback_query(F.data.startswith("room_delete_"))
+@router.callback_query(F.data.startswith("room_delete_"))
 async def delete_room_start(callback: CallbackQuery):
     """Удалить помещение"""
     room_id = int(callback.data.split("_")[-1])
@@ -168,7 +174,7 @@ async def delete_room_start(callback: CallbackQuery):
     await callback.answer()
 
 
-@ROUTER.callback_query(F.data.startswith("cancel_delete_"))
+@router.callback_query(F.data.startswith("cancel_delete_"))
 async def cancel_delete(callback: CallbackQuery):
     room_id = int(callback.data.split("_")[-1])
     keyboard = get_room_actions(room_id)
@@ -176,7 +182,7 @@ async def cancel_delete(callback: CallbackQuery):
     await callback.answer()
 
 
-@ROUTER.callback_query(F.data.startswith("confirm_delete_"))
+@router.callback_query(F.data.startswith("confirm_delete_"))
 async def confirm_delete(callback: CallbackQuery):
     room_id = int(callback.data.split("_")[-1])
     room = Room.get_or_none(id=room_id)

@@ -2,7 +2,7 @@ import os
 from datetime import datetime
 from typing import List
 from dotenv import load_dotenv
-from peewee import SqliteDatabase, Model, DateTimeField, TextField, CharField, IntegerField, BooleanField, ForeignKeyField
+from peewee import SqliteDatabase, Model, DateTimeField, CharField, BooleanField, ForeignKeyField
 
 DB_PATH = os.path.join(os.path.dirname(__file__), 'data', 'database.db')
 # Настройка базы данных
@@ -49,9 +49,9 @@ class Notify(BaseModel):
     room = ForeignKeyField(Room)
 
 
-class Question(BaseModel):
+class Answer(BaseModel):
     '''Варианты вопросов к комнате'''
-    room = ForeignKeyField(Room)
+    room = ForeignKeyField(Room, backref='answers')
     text = CharField()
 
 
@@ -68,7 +68,8 @@ class Appeal(BaseModel):
 def create_tables():
 
     with db:
-        db.create_tables([Room, Appeal, User, Role, UserRole, Notify, Question])
+        db.create_tables(
+            [Room, Appeal, User, Role, UserRole, Notify, Answer])
 
     admin, _ = Role.get_or_create(name='Администратор')
     Role.get_or_create(name='Сотрудник')

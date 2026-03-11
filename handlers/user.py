@@ -4,7 +4,7 @@ from aiogram.types import Message, CallbackQuery
 from aiogram.fsm.context import FSMContext
 from aiogram.enums import ParseMode
 
-from models import Appeal, Room
+from models import Appeal, Notify, Room
 from states import UserStates
 from handlers.common import start_room_handler
 
@@ -40,8 +40,13 @@ async def handle_appeal(message: Message, state: FSMContext):
 
     # Пересылаем обращение администратору
     # admin_user = User.gegek htrdtcnj dytnbt(User.user_id == room.admin_id)
-    appeal_text = f"Новое обращение по помещению '{room.name}':\n\n{message.text}"
+    appeal_text = f"Новое обращение по помещению '{
+        room.name}':\n\n{
+        message.text}"
     await message.bot.send_message(room.creator.id, appeal_text)
+    nitifys: list[Notify] = list(Notify.select().where(Notify.room == room.id))
+    for notify in nitifys:
+        await message.bot.send_message(notify.user.id, appeal_text)
     await state.clear()
 
 
